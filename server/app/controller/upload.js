@@ -1,24 +1,37 @@
 'use strict';
 
 const path = require('path');
-const fs = require('fs');
-const { pipeline } = require('stream/promises');
+const COS = require('cos-nodejs-sdk-v5');
 const Controller = require('egg').Controller;
 
 class UploadController extends Controller {
   async image() {
-    const { ctx } = this;
+    const { ctx, app } = this;
     const stream = await ctx.getFileStream();
-    const extname = path.extname(stream.filename || '').toLowerCase();
-    const filename = `${Date.now()}-${Math.random().toString(16).slice(2)}${extname}`;
-    const uploadDir = path.join(this.app.baseDir, 'app/public/uploads');
-    const target = path.join(uploadDir, filename);
+    const { secretId, secretKey, bucket, region, domain } = app.config.cos;
 
-    await fs.promises.mkdir(uploadDir, { recursive: true });
-    await pipeline(stream, fs.createWriteStream(target));
+    if (!secretId || !secretKey || !bucket || !region) {
+      ctx.fail('COS 配置不完整', 500);
+      stream.resume();
+      return;
+    }
+
+    const extname = path.extname(stream.filename || '').toLowerCase();
+    const key = `images/${Date.now()}-${Math.random().toString(16).slice(2)}${extname}`;
+    const cos = new COS({
+      SecretId: secretId,
+      SecretKey: secretKey,
+    });
+
+    await cos.uploadFile({
+      Bucket: bucket,
+      Region: region,
+      Key: key,
+      Body: stream,
+    });
 
     ctx.success({
-      url: `/public/uploads/${filename}`,
+      url: domain ? `${domain.replace(/\/$/, '')}/${key}` : `https://${bucket}.cos.${region}.myqcloud.com/${key}`,
     });
   }
 }

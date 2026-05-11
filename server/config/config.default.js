@@ -53,6 +53,7 @@ module.exports = appInfo => {
     secretKey: '',
     bucket: '',
     region: '',
+    domain: '',
   };
 
   return config;
