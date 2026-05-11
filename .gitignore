@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+**/dist/
+
+# Egg.js
+server/logs/
+server/run/
+server/.node_modules/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# 本地敏感配置（数据库密码、COS 密钥等）
+server/config/config.local.js
+
+# Editor
+.DS_Store
+.idea/
+.vscode/
+*.suo
+*.user
+
+# Dev server output (本地临时文件)
+.dev-error.txt
+.dev-output.txt
+
+# Logs
+*.log
+npm-debug.log*
