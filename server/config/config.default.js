@@ -18,11 +18,17 @@ module.exports = appInfo => {
 
   config.jwt = {
     secret: 'tom_blog_jwt_secret',
+    expiresIn: '7d',
+  };
+
+  config.admin = {
+    initialUsername: '',
+    initialPassword: '',
   };
 
   config.sequelize = {
     dialect: 'mysql',
-    database: 'tom_blog',
+    database: 'tom_blog_codex',
     host: '127.0.0.1',
     port: 3306,
     username: 'root',

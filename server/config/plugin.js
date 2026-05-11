@@ -11,6 +11,6 @@ exports.jwt = {
 };
 
 exports.sequelize = {
-  enable: process.env.ENABLE_SEQUELIZE === 'true',
+  enable: true,
   package: 'egg-sequelize',
 };

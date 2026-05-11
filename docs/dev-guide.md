@@ -24,7 +24,7 @@ cd tom-blog-codex
 登录 MySQL，创建数据库：
 
 ```sql
-CREATE DATABASE tom_blog CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE tom_blog_codex CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
 ### 3. 配置后端环境变量
@@ -37,7 +37,7 @@ CREATE DATABASE tom_blog CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 module.exports = () => {
   return {
     sequelize: {
-      database: 'tom_blog',
+      database: 'tom_blog_codex',
       username: 'root',
       password: '你的数据库密码',
       host: '127.0.0.1',
