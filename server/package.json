@@ -1,0 +1,27 @@
+{
+  "name": "tom-blog-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tom Blog server",
+  "scripts": {
+    "dev": "egg-bin dev",
+    "start": "egg-scripts start --daemon --title=tom-blog-server",
+    "stop": "egg-scripts stop --title=tom-blog-server"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cos-nodejs-sdk-v5": "^2.14.6",
+    "egg": "^3.31.0",
+    "egg-cors": "^2.2.4",
+    "egg-jwt": "^3.1.7",
+    "egg-scripts": "^2.17.0",
+    "egg-sequelize": "^6.0.0",
+    "mysql2": "^3.14.0"
+  },
+  "devDependencies": {
+    "egg-bin": "^6.11.0"
+  }
+}
