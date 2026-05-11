@@ -16,6 +16,8 @@ module.exports = appInfo => {
     allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH,OPTIONS',
   };
 
+  config.middleware = [ 'errorHandler' ];
+
   config.jwt = {
     secret: 'tom_blog_jwt_secret',
     expiresIn: '7d',
@@ -38,6 +40,12 @@ module.exports = appInfo => {
       underscored: true,
       freezeTableName: true,
     },
+  };
+
+  config.multipart = {
+    mode: 'stream',
+    fileSize: '5mb',
+    fileExtensions: [ '.jpg', '.jpeg', '.png', '.gif', '.webp' ],
   };
 
   config.cos = {

@@ -22,6 +22,24 @@ class AdminService extends Service {
     const isPasswordValid = await bcrypt.compare(password, admin.password);
     return isPasswordValid ? admin : null;
   }
+
+  async changePassword(adminId, oldPassword, newPassword) {
+    const admin = await this.ctx.model.Admin.findByPk(adminId);
+
+    if (!admin) {
+      return { success: false, message: '管理员不存在' };
+    }
+
+    const isOldPasswordValid = await bcrypt.compare(oldPassword, admin.password);
+    if (!isOldPasswordValid) {
+      return { success: false, message: '旧密码错误' };
+    }
+
+    admin.password = await bcrypt.hash(newPassword, 10);
+    await admin.save();
+
+    return { success: true };
+  }
 }
 
 module.exports = AdminService;

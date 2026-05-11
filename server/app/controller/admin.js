@@ -8,23 +8,13 @@ class AdminController extends Controller {
     const { username, password } = ctx.request.body || {};
 
     if (!username || !password) {
-      ctx.status = 400;
-      ctx.body = {
-        code: 1,
-        message: '用户名和密码不能为空',
-        data: null,
-      };
+      ctx.fail('用户名和密码不能为空');
       return;
     }
 
     const admin = await ctx.service.admin.verifyLogin(username, password);
     if (!admin) {
-      ctx.status = 401;
-      ctx.body = {
-        code: 1,
-        message: '用户名或密码错误',
-        data: null,
-      };
+      ctx.fail('用户名或密码错误', 401);
       return;
     }
 
@@ -39,13 +29,7 @@ class AdminController extends Controller {
       }
     );
 
-    ctx.body = {
-      code: 0,
-      message: 'success',
-      data: {
-        token,
-      },
-    };
+    ctx.success({ token });
   }
 
   async info() {
@@ -53,24 +37,38 @@ class AdminController extends Controller {
     const admin = await ctx.service.admin.findById(ctx.state.admin.id);
 
     if (!admin) {
-      ctx.status = 404;
-      ctx.body = {
-        code: 1,
-        message: '管理员不存在',
-        data: null,
-      };
+      ctx.fail('管理员不存在', 404);
       return;
     }
 
-    ctx.body = {
-      code: 0,
-      message: 'success',
-      data: {
-        id: admin.id,
-        username: admin.username,
-        created_at: admin.createdAt,
-      },
-    };
+    ctx.success({
+      id: admin.id,
+      username: admin.username,
+      created_at: admin.createdAt,
+    });
+  }
+
+  async changePassword() {
+    const { ctx } = this;
+    const { oldPassword, newPassword } = ctx.request.body || {};
+
+    if (!oldPassword || !newPassword) {
+      ctx.fail('旧密码和新密码不能为空');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      ctx.fail('新密码不少于6位');
+      return;
+    }
+
+    const result = await ctx.service.admin.changePassword(ctx.state.admin.id, oldPassword, newPassword);
+    if (!result.success) {
+      ctx.fail(result.message);
+      return;
+    }
+
+    ctx.success(null);
   }
 }
 

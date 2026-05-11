@@ -40,12 +40,45 @@ class AppBootHook {
   async syncModelComments() {
     const { app } = this;
 
-    await app.model.query("ALTER TABLE `admins` COMMENT = '管理员表'");
-    await app.model.query("ALTER TABLE `admins` MODIFY COLUMN `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '管理员ID'");
-    await app.model.query("ALTER TABLE `admins` MODIFY COLUMN `username` VARCHAR(50) NOT NULL COMMENT '管理员用户名'");
-    await app.model.query("ALTER TABLE `admins` MODIFY COLUMN `password` VARCHAR(255) NOT NULL COMMENT 'bcrypt 加密后的登录密码'");
-    await app.model.query("ALTER TABLE `admins` MODIFY COLUMN `created_at` DATETIME NOT NULL COMMENT '创建时间'");
-    await app.model.query("ALTER TABLE `admins` MODIFY COLUMN `updated_at` DATETIME NOT NULL COMMENT '更新时间'");
+    const sqlList = [
+      "ALTER TABLE `admins` COMMENT = '管理员表'",
+      "ALTER TABLE `admins` MODIFY COLUMN `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '管理员ID'",
+      "ALTER TABLE `admins` MODIFY COLUMN `username` VARCHAR(50) NOT NULL COMMENT '管理员用户名'",
+      "ALTER TABLE `admins` MODIFY COLUMN `password` VARCHAR(255) NOT NULL COMMENT 'bcrypt 加密后的登录密码'",
+      "ALTER TABLE `admins` MODIFY COLUMN `created_at` DATETIME NOT NULL COMMENT '创建时间'",
+      "ALTER TABLE `admins` MODIFY COLUMN `updated_at` DATETIME NOT NULL COMMENT '更新时间'",
+
+      "ALTER TABLE `categories` COMMENT = '文章分类表'",
+      "ALTER TABLE `categories` MODIFY COLUMN `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '分类ID'",
+      "ALTER TABLE `categories` MODIFY COLUMN `name` VARCHAR(50) NOT NULL COMMENT '分类名称'",
+      "ALTER TABLE `categories` MODIFY COLUMN `created_at` DATETIME NOT NULL COMMENT '创建时间'",
+      "ALTER TABLE `categories` MODIFY COLUMN `updated_at` DATETIME NOT NULL COMMENT '更新时间'",
+
+      "ALTER TABLE `tags` COMMENT = '文章标签表'",
+      "ALTER TABLE `tags` MODIFY COLUMN `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '标签ID'",
+      "ALTER TABLE `tags` MODIFY COLUMN `name` VARCHAR(50) NOT NULL COMMENT '标签名称'",
+      "ALTER TABLE `tags` MODIFY COLUMN `created_at` DATETIME NOT NULL COMMENT '创建时间'",
+      "ALTER TABLE `tags` MODIFY COLUMN `updated_at` DATETIME NOT NULL COMMENT '更新时间'",
+
+      "ALTER TABLE `articles` COMMENT = '文章表'",
+      "ALTER TABLE `articles` MODIFY COLUMN `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '文章ID'",
+      "ALTER TABLE `articles` MODIFY COLUMN `title` VARCHAR(200) NOT NULL COMMENT '文章标题'",
+      "ALTER TABLE `articles` MODIFY COLUMN `cover` VARCHAR(500) NULL COMMENT '封面图URL'",
+      "ALTER TABLE `articles` MODIFY COLUMN `content` LONGTEXT NOT NULL COMMENT 'Markdown 原文内容'",
+      "ALTER TABLE `articles` MODIFY COLUMN `category_id` INT UNSIGNED NOT NULL COMMENT '关联分类ID'",
+      "ALTER TABLE `articles` MODIFY COLUMN `is_published` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否发布：0未发布，1已发布'",
+      "ALTER TABLE `articles` MODIFY COLUMN `deleted_at` DATETIME NULL COMMENT '软删除时间'",
+      "ALTER TABLE `articles` MODIFY COLUMN `created_at` DATETIME NOT NULL COMMENT '创建时间'",
+      "ALTER TABLE `articles` MODIFY COLUMN `updated_at` DATETIME NOT NULL COMMENT '更新时间'",
+
+      "ALTER TABLE `article_tags` COMMENT = '文章标签关联表'",
+      "ALTER TABLE `article_tags` MODIFY COLUMN `article_id` INT UNSIGNED NOT NULL COMMENT '文章ID'",
+      "ALTER TABLE `article_tags` MODIFY COLUMN `tag_id` INT UNSIGNED NOT NULL COMMENT '标签ID'",
+    ];
+
+    for (const sql of sqlList) {
+      await app.model.query(sql);
+    }
   }
 }
 

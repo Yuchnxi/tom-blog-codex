@@ -5,12 +5,7 @@ module.exports = () => {
     const authorization = ctx.get('Authorization');
 
     if (!authorization || !authorization.startsWith('Bearer ')) {
-      ctx.status = 401;
-      ctx.body = {
-        code: 1,
-        message: '请先登录',
-        data: null,
-      };
+      ctx.fail('请先登录', 401);
       return;
     }
 
@@ -20,12 +15,7 @@ module.exports = () => {
       ctx.state.admin = ctx.app.jwt.verify(token, ctx.app.config.jwt.secret);
       await next();
     } catch (err) {
-      ctx.status = 401;
-      ctx.body = {
-        code: 1,
-        message: '登录已过期，请重新登录',
-        data: null,
-      };
+      ctx.fail('登录已过期，请重新登录', 401);
     }
   };
 };
