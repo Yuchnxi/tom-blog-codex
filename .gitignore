@@ -10,6 +10,7 @@ dist/
 server/logs/
 server/run/
 server/.node_modules/
+server/app/public/uploads/
 
 # Environment
 .env

@@ -71,6 +71,8 @@ cd server && npm stop
 
 主要表：`admins`、`articles`、`categories`、`tags`、`article_tags`（多对多关联）
 
+Sequelize 模型需要为表和字段添加中文注释，方便在数据库管理工具中识别用途。
+
 ## Git 提交规范
 
 提交信息统一使用**中文**，格式为 `类型: 说明`。

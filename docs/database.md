@@ -79,7 +79,7 @@ articles  →  tags          多对多（通过 article_tags）
 ## 初始化 SQL
 
 ```sql
-CREATE DATABASE tom_blog CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE tom_blog_codex CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
 表由 egg-sequelize 的 `sync` 或迁移脚本自动创建，开发环境使用 `sync({ force: false })`。
