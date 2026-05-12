@@ -74,6 +74,17 @@ class AppBootHook {
       "ALTER TABLE `article_tags` COMMENT = '文章标签关联表'",
       "ALTER TABLE `article_tags` MODIFY COLUMN `article_id` INT UNSIGNED NOT NULL COMMENT '文章ID'",
       "ALTER TABLE `article_tags` MODIFY COLUMN `tag_id` INT UNSIGNED NOT NULL COMMENT '标签ID'",
+      "ALTER TABLE `profiles` COMMENT = '个人信息表'",
+      "ALTER TABLE `profiles` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+      "ALTER TABLE `profiles` MODIFY COLUMN `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '个人信息ID'",
+      "ALTER TABLE `profiles` MODIFY COLUMN `avatar` VARCHAR(500) NULL COMMENT '头像URL'",
+      "ALTER TABLE `profiles` MODIFY COLUMN `nickname` VARCHAR(50) NOT NULL DEFAULT '' COMMENT '昵称'",
+      "ALTER TABLE `profiles` MODIFY COLUMN `bio` VARCHAR(200) NULL COMMENT '一句话简介'",
+      "ALTER TABLE `profiles` MODIFY COLUMN `description` TEXT NULL COMMENT '详细介绍'",
+      "ALTER TABLE `profiles` MODIFY COLUMN `email` VARCHAR(100) NULL COMMENT '邮箱'",
+      "ALTER TABLE `profiles` MODIFY COLUMN `github` VARCHAR(500) NULL COMMENT 'GitHub链接'",
+      "ALTER TABLE `profiles` MODIFY COLUMN `created_at` DATETIME NOT NULL COMMENT '创建时间'",
+      "ALTER TABLE `profiles` MODIFY COLUMN `updated_at` DATETIME NOT NULL COMMENT '更新时间'",
     ];
 
     for (const sql of sqlList) {

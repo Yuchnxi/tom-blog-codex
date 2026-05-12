@@ -27,11 +27,16 @@ class TagService extends Service {
   async remove(id) {
     const tag = await this.ctx.model.Tag.findByPk(id);
     if (!tag) {
-      return false;
+      return { success: false, reason: 'not_found' };
+    }
+
+    const articleCount = await tag.countArticles();
+    if (articleCount > 0) {
+      return { success: false, reason: 'in_use' };
     }
 
     await tag.destroy();
-    return true;
+    return { success: true };
   }
 }
 

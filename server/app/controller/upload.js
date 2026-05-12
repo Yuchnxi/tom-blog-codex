@@ -23,11 +23,12 @@ class UploadController extends Controller {
       SecretKey: secretKey,
     });
 
-    await cos.uploadFile({
+    await cos.putObject({
       Bucket: bucket,
       Region: region,
       Key: key,
       Body: stream,
+      ContentType: stream.mime,
     });
 
     ctx.success({
