@@ -6,9 +6,13 @@ module.exports = app => {
 
   router.get('/', controller.home.index);
 
+  router.get('/api/profile', controller.profile.detail);
+
   router.post('/api/admin/login', controller.admin.login);
   router.get('/api/admin/info', adminAuth, controller.admin.info);
   router.put('/api/admin/password', adminAuth, controller.admin.changePassword);
+  router.get('/api/admin/profile', adminAuth, controller.profile.detail);
+  router.put('/api/admin/profile', adminAuth, controller.profile.update);
 
   router.get('/api/categories', controller.category.list);
   router.post('/api/admin/categories', adminAuth, controller.category.create);

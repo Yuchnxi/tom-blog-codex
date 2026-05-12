@@ -17,6 +17,7 @@ const routes = [
       { path: 'articles', name: 'articles', component: () => import('../views/article/index.vue'), meta: { title: '文章管理' } },
       { path: 'categories', name: 'categories', component: () => import('../views/category/index.vue'), meta: { title: '分类管理' } },
       { path: 'tags', name: 'tags', component: () => import('../views/tag/index.vue'), meta: { title: '标签管理' } },
+      { path: 'profile', name: 'profile', component: () => import('../views/profile/index.vue'), meta: { title: '个人信息' } },
     ],
   },
 ];
