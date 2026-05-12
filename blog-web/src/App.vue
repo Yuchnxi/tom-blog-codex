@@ -5,8 +5,8 @@
         <RouterLink class="brand-logo" to="/">TOM <span>BLOG</span></RouterLink>
         <nav class="nav-links" aria-label="主导航">
           <RouterLink to="/">首页</RouterLink>
-          <RouterLink to="/#articles">文章</RouterLink>
-          <RouterLink to="/#footer">联系</RouterLink>
+          <RouterLink to="/articles">文章</RouterLink>
+          <RouterLink to="/about">关于</RouterLink>
         </nav>
       </div>
     </header>
