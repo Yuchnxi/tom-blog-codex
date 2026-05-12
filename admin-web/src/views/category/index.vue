@@ -18,7 +18,6 @@
 
     <div class="panel">
       <el-table v-loading="loading" :data="pagedItems">
-        <el-table-column prop="id" label="ID" width="90" align="center" />
         <el-table-column prop="name" label="分类名称" min-width="240" />
         <el-table-column label="创建时间" width="180" align="center">
           <template #default="{ row }">{{ formatDate(row.created_at || row.createdAt) }}</template>

@@ -29,10 +29,10 @@
     <div class="panel">
       <el-table v-loading="loading" :data="articles">
         <el-table-column prop="title" label="文章标题" min-width="260" show-overflow-tooltip />
-        <el-table-column label="分类" width="140" align="center">
+        <el-table-column label="分类" width="200" align="center">
           <template #default="{ row }">{{ row.category?.name || '-' }}</template>
         </el-table-column>
-        <el-table-column label="标签" min-width="190" align="center">
+        <el-table-column label="标签" min-width="200" align="center">
           <template #default="{ row }">
             <el-space wrap>
               <el-tag v-for="tag in row.tags" :key="tag.id" size="small" effect="plain">{{ tag.name }}</el-tag>
