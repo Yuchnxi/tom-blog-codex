@@ -20,18 +20,18 @@
       </div>
 
       <el-table v-loading="loading" :data="latestArticles">
-        <el-table-column prop="title" label="文章标题" min-width="260" show-overflow-tooltip />
-        <el-table-column label="分类" width="150" align="center">
+        <el-table-column prop="title" label="文章标题" min-width="200" show-overflow-tooltip />
+        <el-table-column label="分类" width="300" align="center">
           <template #default="{ row }">{{ row.category?.name || '-' }}</template>
         </el-table-column>
-        <el-table-column label="状态" width="120" align="center">
+        <el-table-column label="状态" width="300" align="center">
           <template #default="{ row }">
             <span :class="['status-badge', row.is_published ? 'status-published' : 'status-draft']">
               {{ row.is_published ? '已发布' : '草稿' }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="更新时间" width="180" align="center">
+        <el-table-column label="更新时间" width="300" align="center">
           <template #default="{ row }">{{ formatDate(row.updated_at || row.updatedAt) }}</template>
         </el-table-column>
       </el-table>

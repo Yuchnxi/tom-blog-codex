@@ -19,10 +19,10 @@
     <div class="panel">
       <el-table v-loading="loading" :data="pagedItems">
         <el-table-column prop="name" label="分类名称" min-width="240" />
-        <el-table-column label="创建时间" width="180" align="center">
+        <el-table-column label="创建时间" width="300" align="center">
           <template #default="{ row }">{{ formatDate(row.created_at || row.createdAt) }}</template>
         </el-table-column>
-        <el-table-column label="更新时间" width="180" align="center">
+        <el-table-column label="更新时间" width="300" align="center">
           <template #default="{ row }">{{ formatDate(row.updated_at || row.updatedAt) }}</template>
         </el-table-column>
         <el-table-column label="操作" width="200" align="center" fixed="right">
