@@ -41,10 +41,15 @@ class TagController extends Controller {
 
   async remove() {
     const { ctx } = this;
-    const success = await ctx.service.tag.remove(ctx.params.id);
+    const result = await ctx.service.tag.remove(ctx.params.id);
 
-    if (!success) {
+    if (!result.success && result.reason === 'not_found') {
       ctx.fail('标签不存在', 404);
+      return;
+    }
+
+    if (!result.success && result.reason === 'in_use') {
+      ctx.fail('该标签下仍有关联文章，不能删除');
       return;
     }
 

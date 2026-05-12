@@ -27,11 +27,18 @@ class CategoryService extends Service {
   async remove(id) {
     const category = await this.ctx.model.Category.findByPk(id);
     if (!category) {
-      return false;
+      return { success: false, reason: 'not_found' };
+    }
+
+    const articleCount = await this.ctx.model.Article.count({
+      where: { category_id: id },
+    });
+    if (articleCount > 0) {
+      return { success: false, reason: 'in_use' };
     }
 
     await category.destroy();
-    return true;
+    return { success: true };
   }
 }
 

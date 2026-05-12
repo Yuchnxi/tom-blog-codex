@@ -13,9 +13,11 @@ module.exports = () => {
 
     try {
       ctx.state.admin = ctx.app.jwt.verify(token, ctx.app.config.jwt.secret);
-      await next();
     } catch (err) {
       ctx.fail('登录已过期，请重新登录', 401);
+      return;
     }
+
+    await next();
   };
 };

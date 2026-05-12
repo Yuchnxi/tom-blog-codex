@@ -41,10 +41,15 @@ class CategoryController extends Controller {
 
   async remove() {
     const { ctx } = this;
-    const success = await ctx.service.category.remove(ctx.params.id);
+    const result = await ctx.service.category.remove(ctx.params.id);
 
-    if (!success) {
+    if (!result.success && result.reason === 'not_found') {
       ctx.fail('分类不存在', 404);
+      return;
+    }
+
+    if (!result.success && result.reason === 'in_use') {
+      ctx.fail('该分类下仍有关联文章，不能删除');
       return;
     }
 
