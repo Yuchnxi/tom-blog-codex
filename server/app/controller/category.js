@@ -53,6 +53,11 @@ class CategoryController extends Controller {
       return;
     }
 
+    if (!result.success && result.reason === 'default_category') {
+      ctx.fail('未分类是系统兜底分类，不能删除');
+      return;
+    }
+
     ctx.success(null);
   }
 }
