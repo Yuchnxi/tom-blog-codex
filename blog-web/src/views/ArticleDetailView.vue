@@ -17,15 +17,27 @@
         </div>
 
         <figure class="cover-frame">
-          <img v-if="article.cover" :src="article.cover" :alt="article.title" />
+          <img
+            v-if="article.cover"
+            :src="article.cover"
+            :alt="article.title"
+            @click="openImagePreview($event.target)"
+          />
           <div v-else class="cover-placeholder">TOM NOTES</div>
         </figure>
       </header>
 
       <div class="classic-divider" aria-hidden="true"></div>
 
-      <section class="reader-body" v-html="renderedContent"></section>
+      <section class="reader-body" v-html="renderedContent" @click="handleReaderBodyClick"></section>
     </article>
+
+    <ImagePreviewDialog
+      :visible="previewVisible"
+      :src="previewImage.src"
+      :alt="previewImage.alt"
+      @close="closeImagePreview"
+    />
   </main>
 </template>
 
@@ -34,12 +46,18 @@ import MarkdownIt from 'markdown-it';
 import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 import { getArticle } from '../api/blog';
+import ImagePreviewDialog from '../components/ImagePreviewDialog.vue';
 import { formatDate } from '../utils/format';
 
 const route = useRoute();
 const loading = ref(false);
 const errorMessage = ref('');
 const article = ref(null);
+const previewVisible = ref(false);
+const previewImage = ref({
+  src: '',
+  alt: '',
+});
 
 const md = new MarkdownIt({
   html: false,
@@ -47,9 +65,81 @@ const md = new MarkdownIt({
   breaks: true,
 });
 
-const renderedContent = computed(() => md.render(article.value?.content || ''));
+const renderedContent = computed(() => {
+  const html = md.render(article.value?.content || '');
+  return html.replace(/<pre><code([^>]*)>([\s\S]*?)<\/code><\/pre>/g, (_match, attrs, code) => {
+    return `<div class="code-block"><button class="code-copy" type="button" aria-label="复制代码">复制</button><pre><code${attrs}>${code}</code></pre></div>`;
+  });
+});
 const categoryName = computed(() => article.value?.category?.name || '文章');
 const articleDate = computed(() => formatDate(article.value?.created_at || article.value?.createdAt));
+
+async function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textarea);
+}
+
+async function handleCodeCopy(event) {
+  const button = event.target.closest?.('.code-copy');
+  if (!button) {
+    return;
+  }
+
+  const code = button.closest('.code-block')?.querySelector('code');
+  if (!code) {
+    return;
+  }
+
+  try {
+    await copyText(code.textContent || '');
+    button.textContent = '已复制';
+    button.classList.add('is-copied');
+    window.setTimeout(() => {
+      button.textContent = '复制';
+      button.classList.remove('is-copied');
+    }, 1200);
+  } catch {
+    button.textContent = '复制失败';
+    window.setTimeout(() => {
+      button.textContent = '复制';
+    }, 1200);
+  }
+}
+
+function openImagePreview(img) {
+  previewImage.value = {
+    src: img.currentSrc || img.src,
+    alt: img.alt || article.value?.title || '图片预览',
+  };
+  previewVisible.value = true;
+}
+
+function closeImagePreview() {
+  previewVisible.value = false;
+}
+
+function handleReaderBodyClick(event) {
+  if (event.target.closest?.('.code-copy')) {
+    handleCodeCopy(event);
+    return;
+  }
+
+  if (event.target instanceof HTMLImageElement) {
+    openImagePreview(event.target);
+  }
+}
 
 async function loadArticle() {
   loading.value = true;
@@ -190,7 +280,14 @@ onMounted(loadArticle);
 }
 
 .cover-frame img {
+  cursor: zoom-in;
   object-fit: cover;
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.cover-frame img:hover {
+  filter: brightness(1.03);
+  transform: scale(1.015);
 }
 
 .cover-placeholder {
@@ -255,9 +352,130 @@ onMounted(loadArticle);
   background: rgba(154, 118, 40, 0.08);
 }
 
-.reader-body :deep(img) {
+.reader-body :deep(blockquote p) {
+  text-indent: 0;
+}
+
+.reader-body :deep(ul),
+.reader-body :deep(ol) {
+  margin: 0 0 1.5em;
+  padding-left: 1.6em;
+}
+
+.reader-body :deep(li) {
+  margin: 0.35em 0;
+}
+
+.reader-body :deep(table) {
+  display: block;
+  width: 100%;
   max-width: 100%;
+  margin: 1.5em 0;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-family: "Noto Serif SC", "Songti SC", SimSun, serif;
+  font-size: 0.95em;
+  line-height: 1.7;
+}
+
+.reader-body :deep(th),
+.reader-body :deep(td) {
+  border: 1px solid rgba(154, 118, 40, 0.22);
+  padding: 10px 14px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.reader-body :deep(th) {
+  background: rgba(154, 118, 40, 0.1);
+  color: #5d471a;
+  font-weight: 700;
+}
+
+.reader-body :deep(tr:nth-child(even) td) {
+  background: rgba(154, 118, 40, 0.045);
+}
+
+.reader-body :deep(code) {
+  border: 1px solid rgba(154, 118, 40, 0.14);
+  border-radius: 5px;
+  padding: 2px 6px;
+  background: rgba(79, 68, 52, 0.08);
+  color: #7b3f22;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.9em;
+}
+
+.reader-body :deep(.code-block) {
+  position: relative;
+  margin: 1.5em 0;
+}
+
+.reader-body :deep(.code-copy) {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  border: 1px solid rgba(248, 242, 232, 0.2);
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: rgba(253, 251, 247, 0.12);
+  color: rgba(248, 242, 232, 0.86);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.reader-body :deep(.code-copy:hover),
+.reader-body :deep(.code-copy.is-copied) {
+  border-color: rgba(214, 181, 91, 0.72);
+  background: rgba(214, 181, 91, 0.22);
+  color: #fff7df;
+}
+
+.reader-body :deep(pre) {
+  overflow-x: auto;
+  margin: 0;
+  border: 1px solid rgba(52, 44, 33, 0.12);
+  border-radius: 10px;
+  padding: 42px 20px 18px;
+  background: #2b2721;
+  color: #f8f2e8;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.reader-body :deep(pre code) {
+  display: block;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 0.86em;
+  line-height: 1.75;
+  white-space: pre;
+}
+
+.reader-body :deep(img) {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.5em auto;
   border-radius: 8px;
+  cursor: zoom-in;
+  transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.reader-body :deep(img:hover) {
+  box-shadow: 0 14px 34px rgba(42, 31, 18, 0.18);
+  transform: translateY(-1px);
+}
+
+.reader-body :deep(hr) {
+  height: 1px;
+  margin: 2em 0;
+  border: 0;
+  background: linear-gradient(90deg, transparent, rgba(141, 108, 39, 0.32), transparent);
 }
 
 @media (max-width: 768px) {
