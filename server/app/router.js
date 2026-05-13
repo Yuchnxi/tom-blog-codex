@@ -34,4 +34,5 @@ module.exports = app => {
   router.patch('/api/admin/articles/:id/publish', adminAuth, controller.article.togglePublish);
 
   router.post('/api/admin/upload', adminAuth, controller.upload.image);
+  router.get('/api/uploads/:filename', controller.upload.file);
 };

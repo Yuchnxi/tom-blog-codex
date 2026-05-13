@@ -83,6 +83,8 @@ EOF
 
 如果需要上传图片，把腾讯云 COS 参数补齐；不配置 COS 时，后台上传图片接口不可用。
 
+当前项目也支持本地上传兜底：如果 `COS_SECRET_ID`、`COS_SECRET_KEY`、`COS_BUCKET`、`COS_REGION` 为空，图片会保存到服务器本地 `server/app/public/uploads`，并通过 `/api/uploads/文件名` 访问。单机部署可以先用这个方案；如果后续多服务器部署或需要对象存储，再配置腾讯云 COS。
+
 ## 5. 构建前端
 
 ```bash
