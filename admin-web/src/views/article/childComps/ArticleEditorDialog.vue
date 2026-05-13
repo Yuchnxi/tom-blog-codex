@@ -3,8 +3,8 @@
     v-model="visible"
     class="article-editor-dialog"
     :title="articleId ? '编辑文章' : '新增文章'"
-    width="1120px"
-    top="5vh"
+    width="min(1440px, 96vw)"
+    top="4vh"
     destroy-on-close
     :close-on-click-modal="false"
     @open="init"
@@ -15,49 +15,68 @@
       class="article-form"
       :model="form"
       :rules="rules"
-      label-width="86px"
+      label-width="76px"
     >
-      <el-form-item label="文章标题" prop="title">
-        <el-input v-model="form.title" maxlength="200" show-word-limit placeholder="请输入文章标题" />
-      </el-form-item>
+      <div class="article-editor-layout">
+        <aside class="article-config-panel" aria-label="文章配置">
+          <section class="cover-panel" aria-label="封面图">
+            <div class="panel-title">封面图</div>
+            <el-upload
+              class="cover-uploader"
+              :show-file-list="false"
+              :http-request="handleUpload"
+              :before-upload="beforeCoverUpload"
+              accept="image/*"
+            >
+              <div v-if="form.cover" class="cover-preview-card">
+                <img :src="form.cover" alt="文章封面" />
+                <span class="cover-preview-mask">{{ uploading ? '上传中...' : '重新上传' }}</span>
+              </div>
+              <div v-else class="cover-upload-card">
+                <el-icon class="cover-upload-icon"><Upload /></el-icon>
+                <span>{{ uploading ? '上传中...' : '上传封面' }}</span>
+              </div>
+            </el-upload>
+            <el-input v-model="form.cover" clearable placeholder="图片 URL，可手动粘贴" />
+          </section>
 
-      <el-form-item label="分类" prop="categoryId">
-        <el-select v-model="form.categoryId" placeholder="请选择分类">
-          <el-option v-for="item in categories" :key="item.id" :label="item.name" :value="item.id" />
-        </el-select>
-      </el-form-item>
+          <section class="article-meta-panel" aria-label="文章信息">
+            <el-form-item label="标题" prop="title">
+              <el-input v-model="form.title" maxlength="200" show-word-limit placeholder="请输入文章标题" />
+            </el-form-item>
 
-      <el-form-item label="封面图">
-        <div class="cover-inline">
-          <el-input v-model="form.cover" placeholder="图片 URL，可上传后获取" />
-          <el-upload :show-file-list="false" :http-request="handleUpload" accept="image/*">
-            <el-button :icon="Upload" :loading="uploading">上传</el-button>
-          </el-upload>
-        </div>
-        <img v-if="form.cover" class="cover-preview" :src="form.cover" alt="文章封面" />
-      </el-form-item>
+            <el-form-item label="分类" prop="categoryId">
+              <el-select v-model="form.categoryId" placeholder="请选择分类">
+                <el-option v-for="item in categories" :key="item.id" :label="item.name" :value="item.id" />
+              </el-select>
+            </el-form-item>
 
-      <el-form-item label="标签">
-        <el-select v-model="form.tagIds" multiple placeholder="请选择标签">
-          <el-option v-for="item in tags" :key="item.id" :label="item.name" :value="item.id" />
-        </el-select>
-      </el-form-item>
+            <el-form-item label="标签">
+              <el-select v-model="form.tagIds" multiple placeholder="请选择标签">
+                <el-option v-for="item in tags" :key="item.id" :label="item.name" :value="item.id" />
+              </el-select>
+            </el-form-item>
 
-      <el-form-item label="正文" prop="content">
-        <MdEditor
-          v-model="form.content"
-          class="article-md-editor"
-          language="zh-CN"
-          preview-theme="github"
-          code-theme="github"
-          :toolbars-exclude="['github']"
-          @on-upload-img="handleMarkdownUpload"
-        />
-      </el-form-item>
+            <el-form-item label="发布">
+              <el-switch v-model="form.isPublished" active-text="发布" inactive-text="草稿" />
+            </el-form-item>
+          </section>
+        </aside>
 
-      <el-form-item label="发布">
-        <el-switch v-model="form.isPublished" active-text="发布" inactive-text="草稿" />
-      </el-form-item>
+        <section class="article-content-panel" aria-label="正文编辑">
+          <el-form-item label="正文" prop="content">
+            <MdEditor
+              v-model="form.content"
+              class="article-md-editor"
+              language="zh-CN"
+              preview-theme="github"
+              code-theme="github"
+              :toolbars-exclude="['github']"
+              @on-upload-img="handleMarkdownUpload"
+            />
+          </el-form-item>
+        </section>
+      </div>
     </el-form>
 
     <template #footer>
@@ -156,6 +175,15 @@ async function handleMarkdownUpload(files, callback) {
   } catch {
     ElMessage.error('图片上传失败');
   }
+}
+
+function beforeCoverUpload(file) {
+  if (!file.type.startsWith('image/')) {
+    ElMessage.error('请上传图片文件');
+    return false;
+  }
+
+  return true;
 }
 
 async function handleUpload(option) {
