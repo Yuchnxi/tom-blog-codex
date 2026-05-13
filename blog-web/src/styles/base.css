@@ -50,6 +50,11 @@ button {
   margin: 0 auto;
 }
 
+.home-main,
+.article-page {
+  background: url("../assets/home_bg.png") center top / cover no-repeat;
+}
+
 .navbar {
   position: sticky;
   z-index: 20;

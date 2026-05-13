@@ -1,5 +1,5 @@
 <template>
-  <main>
+  <main class="home-main">
     <section class="hero container">
       <p class="hero-kicker">Personal Notes / Engineering Journal</p>
       <h1>所见所学，皆成一记。</h1>
