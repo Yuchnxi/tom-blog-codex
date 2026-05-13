@@ -56,7 +56,7 @@
         <RouterLink v-for="article in articles" :key="article.id" class="post-card" :to="`/articles/${article.id}`">
           <div v-if="article.cover" class="post-image" :style="{ backgroundImage: `url(${article.cover})` }"></div>
           <div v-else class="post-image post-image-placeholder">
-            <span>TOM BLOG</span>
+            <span>TOM NOTES</span>
           </div>
           <div class="post-content">
             <div class="post-meta">

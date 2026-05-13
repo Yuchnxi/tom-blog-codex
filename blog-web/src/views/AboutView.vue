@@ -50,7 +50,7 @@
             </div>
             <div class="about-signature">
               <span>Writing as practice</span>
-              <strong>TOM BLOG</strong>
+              <strong>TOM NOTES</strong>
             </div>
           </aside>
         </section>
@@ -79,7 +79,7 @@ import { getProfile } from '../api/blog';
 
 const fallbackProfile = {
   avatar: '',
-  nickname: 'TOM BLOG',
+  nickname: 'TOM NOTES',
   bio: '记录技术、学习与思考。',
   description: '这里是个人博客的展示页。文章会沉淀日常开发里的问题、复盘和灵感，也会留下一些关于学习路径和项目实践的笔记。',
   email: '',

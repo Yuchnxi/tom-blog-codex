@@ -2,19 +2,19 @@
   <main>
     <section class="hero container">
       <p class="hero-kicker">Personal Notes / Engineering Journal</p>
-      <h1>在日常开发里，记录值得回看的思考。</h1>
+      <h1>所见所学，皆成一记。</h1>
       <p>
-        这里收集技术文章、学习笔记和项目复盘。写给未来的自己，也写给刚好路过的你。
+        写技术，也写生活；记所得，也记所感。
       </p>
     </section>
 
     <section id="articles" class="container content-section">
       <div class="filter-panel preview-panel">
         <div>
-          <h2>最新文章</h2>
-          <p>从最近的记录开始，慢慢翻回那些被认真写下的时刻。</p>
+          <h2>最新记录</h2>
+          <p>从近处翻起，回看一路写下的技术、生活与思考。</p>
         </div>
-        <RouterLink class="solid-button" to="/articles">查看全部文章</RouterLink>
+        <RouterLink class="solid-button" to="/articles">查看全部记录</RouterLink>
       </div>
 
       <div v-if="loading" class="state-card">文章加载中...</div>
@@ -25,7 +25,7 @@
         <RouterLink v-for="article in articles" :key="article.id" class="post-card" :to="`/articles/${article.id}`">
           <div v-if="article.cover" class="post-image" :style="{ backgroundImage: `url(${article.cover})` }"></div>
           <div v-else class="post-image post-image-placeholder">
-            <span>TOM BLOG</span>
+            <span>TOM NOTES</span>
           </div>
           <div class="post-content">
             <div class="post-meta">

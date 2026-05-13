@@ -1,7 +1,7 @@
 <template>
   <div class="admin-shell">
     <aside class="sidebar">
-      <RouterLink class="brand brand-serif" to="/dashboard">TOM <span>BLOG</span></RouterLink>
+      <RouterLink class="brand brand-serif" to="/dashboard">TOM <span>NOTES</span></RouterLink>
 
       <nav class="nav-menu">
         <RouterLink v-for="item in navItems" :key="item.path" class="nav-item" :to="item.path">

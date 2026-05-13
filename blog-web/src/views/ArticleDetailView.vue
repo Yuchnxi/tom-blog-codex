@@ -18,7 +18,7 @@
         </header>
 
         <img v-if="article.cover" class="article-cover" :src="article.cover" :alt="article.title" />
-        <div v-else class="article-cover placeholder-cover">TOM BLOG</div>
+        <div v-else class="article-cover placeholder-cover">TOM NOTES</div>
 
         <div class="markdown-body" v-html="renderedContent"></div>
       </article>
