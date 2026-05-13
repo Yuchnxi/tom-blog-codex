@@ -50,9 +50,13 @@ button {
   margin: 0 auto;
 }
 
-.home-main,
-.article-page {
-  background: url("../assets/home_bg.png") center top / cover no-repeat;
+.home-main {
+  background-image:
+    linear-gradient(rgba(247, 241, 229, 0.72), rgba(247, 241, 229, 0.82)),
+    url("https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1800&q=80");
+  background-attachment: fixed;
+  background-position: center;
+  background-size: cover;
 }
 
 .navbar {
@@ -300,10 +304,11 @@ button {
 
 .post-image {
   display: grid;
-  height: 202px;
+  aspect-ratio: 16 / 10;
   place-items: center;
   background-color: #eaeef2;
   background-position: center;
+  background-repeat: no-repeat;
   background-size: cover;
 }
 
