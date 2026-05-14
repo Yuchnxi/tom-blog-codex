@@ -5,7 +5,20 @@
     <section v-if="loading" class="reader-state">文章加载中...</section>
     <section v-else-if="errorMessage" class="reader-state reader-error">{{ errorMessage }}</section>
 
-    <article v-else-if="article" class="reader-card">
+    <div v-else-if="article" class="reader-layout">
+      <aside v-if="articleHeadings.length" class="reader-toc" aria-label="文章目录">
+        <div class="reader-toc-title">目录</div>
+        <a
+          v-for="heading in articleHeadings"
+          :key="heading.id"
+          :class="`level-${heading.level}`"
+          :href="`#${heading.id}`"
+        >
+          {{ heading.text }}
+        </a>
+      </aside>
+
+      <article class="reader-card">
       <header class="reader-header">
         <div class="reader-heading">
           <h1>{{ article.title }}</h1>
@@ -30,7 +43,8 @@
       <div class="classic-divider" aria-hidden="true"></div>
 
       <section class="reader-body" v-html="renderedContent" @click="handleReaderBodyClick"></section>
-    </article>
+      </article>
+    </div>
 
     <ImagePreviewDialog
       :visible="previewVisible"
@@ -78,12 +92,62 @@ const md = new MarkdownIt({
   breaks: true,
 });
 
-const renderedContent = computed(() => {
-  const html = md.render(article.value?.content || '');
-  return html.replace(/<pre><code([^>]*)>([\s\S]*?)<\/code><\/pre>/g, (_match, attrs, code) => {
+function getHeadingText(token) {
+  return token?.content?.trim() || '';
+}
+
+function createHeadingId(text, index, usedIds) {
+  const raw = text
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\p{Letter}\p{Number}_-]/gu, '');
+  const base = raw || `section-${index + 1}`;
+  const count = usedIds.get(base) || 0;
+  usedIds.set(base, count + 1);
+  return count ? `${base}-${count + 1}` : base;
+}
+
+function renderArticleMarkdown(content) {
+  const tokens = md.parse(content || '', {});
+  const usedIds = new Map();
+  const headings = [];
+
+  tokens.forEach((token, index) => {
+    if (token.type !== 'heading_open') {
+      return;
+    }
+
+    const level = Number(token.tag.slice(1));
+    if (level < 2 || level > 6) {
+      return;
+    }
+
+    const text = getHeadingText(tokens[index + 1]);
+    if (!text) {
+      return;
+    }
+
+    const id = createHeadingId(text, headings.length, usedIds);
+    token.attrSet('id', id);
+    token.attrJoin('class', 'reader-heading-anchor');
+    headings.push({ id, level, text });
+  });
+
+  const html = md.renderer.render(tokens, md.options, {});
+  const htmlWithCodeTools = html.replace(/<pre><code([^>]*)>([\s\S]*?)<\/code><\/pre>/g, (_match, attrs, code) => {
     return `<div class="code-block"><button class="code-copy" type="button" aria-label="复制代码">复制</button><pre><code${attrs}>${code}</code></pre></div>`;
   });
-});
+
+  return {
+    html: htmlWithCodeTools,
+    headings,
+  };
+}
+
+const articleRenderResult = computed(() => renderArticleMarkdown(article.value?.content || ''));
+const renderedContent = computed(() => articleRenderResult.value.html);
+const articleHeadings = computed(() => articleRenderResult.value.headings);
 const categoryName = computed(() => article.value?.category?.name || '文章');
 const articleDate = computed(() => formatDate(article.value?.created_at || article.value?.createdAt));
 
@@ -217,6 +281,60 @@ onBeforeUnmount(() => {
 .reader-back:hover {
   color: #5f4815;
   transform: translateX(-3px);
+}
+
+.reader-layout {
+  position: relative;
+  max-width: 850px;
+  margin: 0 auto;
+}
+
+.reader-toc {
+  position: fixed;
+  top: 112px;
+  right: calc(50vw + 455px);
+  width: 210px;
+  max-height: calc(100vh - 148px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-left: 2px solid rgba(154, 118, 40, 0.22);
+  padding: 8px 0 8px 16px;
+  color: #6f6252;
+}
+
+.reader-toc-title {
+  margin-bottom: 10px;
+  color: #6b5016;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.reader-toc a {
+  display: block;
+  margin: 8px 0;
+  overflow: hidden;
+  color: inherit;
+  font-size: 13px;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.reader-toc a:hover {
+  color: #8a6b24;
+  transform: translateX(3px);
+}
+
+.reader-toc .level-3 {
+  padding-left: 12px;
+}
+
+.reader-toc .level-4,
+.reader-toc .level-5,
+.reader-toc .level-6 {
+  padding-left: 24px;
 }
 
 .reader-card,
@@ -374,6 +492,10 @@ onBeforeUnmount(() => {
   color: #211d18;
   font-family: "Noto Serif SC", "Songti SC", SimSun, serif;
   line-height: 1.35;
+}
+
+.reader-body :deep(.reader-heading-anchor) {
+  scroll-margin-top: 96px;
 }
 
 .reader-body :deep(blockquote) {
@@ -550,6 +672,20 @@ onBeforeUnmount(() => {
   color: #4f3a0d;
 }
 
+@media (max-width: 1320px) {
+  .reader-toc {
+    position: static;
+    width: auto;
+    max-height: none;
+    margin: 0 auto 16px;
+    border: 1px solid rgba(160, 132, 78, 0.18);
+    border-radius: 10px;
+    padding: 14px 18px;
+    background: rgba(253, 251, 247, 0.82);
+    box-shadow: 0 12px 30px rgba(66, 48, 28, 0.08);
+  }
+}
+
 @media (max-width: 768px) {
   .reader-detail-page {
     padding: 24px 16px 56px;
@@ -561,6 +697,10 @@ onBeforeUnmount(() => {
 
   .reader-card {
     padding: 28px 22px 34px;
+  }
+
+  .reader-toc {
+    padding: 12px 14px;
   }
 
   .reader-header {
