@@ -38,12 +38,24 @@
       :alt="previewImage.alt"
       @close="closeImagePreview"
     />
+
+    <button
+      class="back-to-top"
+      :class="{ 'is-visible': showBackToTop }"
+      type="button"
+      aria-label="返回顶部"
+      :aria-hidden="!showBackToTop"
+      :tabindex="showBackToTop ? 0 : -1"
+      @click="scrollToTop"
+    >
+      ↑
+    </button>
   </main>
 </template>
 
 <script setup>
 import MarkdownIt from 'markdown-it';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 import { getArticle } from '../api/blog';
 import ImagePreviewDialog from '../components/ImagePreviewDialog.vue';
@@ -58,6 +70,7 @@ const previewImage = ref({
   src: '',
   alt: '',
 });
+const showBackToTop = ref(false);
 
 const md = new MarkdownIt({
   html: false,
@@ -130,6 +143,17 @@ function closeImagePreview() {
   previewVisible.value = false;
 }
 
+function updateBackToTop() {
+  showBackToTop.value = window.scrollY > 420;
+}
+
+function scrollToTop() {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  });
+}
+
 function handleReaderBodyClick(event) {
   if (event.target.closest?.('.code-copy')) {
     handleCodeCopy(event);
@@ -155,7 +179,15 @@ async function loadArticle() {
   }
 }
 
-onMounted(loadArticle);
+onMounted(() => {
+  loadArticle();
+  updateBackToTop();
+  window.addEventListener('scroll', updateBackToTop, { passive: true });
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', updateBackToTop);
+});
 </script>
 
 <style scoped>
@@ -478,6 +510,46 @@ onMounted(loadArticle);
   background: linear-gradient(90deg, transparent, rgba(141, 108, 39, 0.32), transparent);
 }
 
+.back-to-top {
+  position: fixed;
+  right: max(28px, calc((100vw - 850px) / 2 - 84px));
+  bottom: 34px;
+  z-index: 12;
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid rgba(154, 118, 40, 0.32);
+  border-radius: 50%;
+  background: rgba(253, 251, 247, 0.86);
+  box-shadow: 0 12px 30px rgba(66, 48, 28, 0.16);
+  color: #7a5a18;
+  cursor: pointer;
+  font-size: 24px;
+  font-weight: 700;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease,
+    background 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.back-to-top.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.back-to-top:hover {
+  border-color: rgba(154, 118, 40, 0.58);
+  background: #fdfbf7;
+  color: #4f3a0d;
+}
+
 @media (max-width: 768px) {
   .reader-detail-page {
     padding: 24px 16px 56px;
@@ -519,6 +591,14 @@ onMounted(loadArticle);
 
   .reader-body :deep(p) {
     text-indent: 0;
+  }
+
+  .back-to-top {
+    right: 18px;
+    bottom: 22px;
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
   }
 }
 </style>
