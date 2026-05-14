@@ -42,6 +42,8 @@
         </RouterLink>
       </div>
     </section>
+
+    <BackToTop />
   </main>
 </template>
 
@@ -49,6 +51,7 @@
 import { onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { getArticles } from '../api/blog';
+import BackToTop from '../components/BackToTop.vue';
 import { createExcerpt, formatDate } from '../utils/format';
 
 const loading = ref(false);

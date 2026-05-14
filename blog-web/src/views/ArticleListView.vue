@@ -88,6 +88,8 @@
         </button>
       </div>
     </section>
+
+    <BackToTop />
   </main>
 </template>
 
@@ -95,6 +97,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { getArticles, getCategories, getTags } from '../api/blog';
+import BackToTop from '../components/BackToTop.vue';
 import { createExcerpt, formatDate } from '../utils/format';
 
 const pageSize = 9;
