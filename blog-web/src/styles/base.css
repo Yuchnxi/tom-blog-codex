@@ -50,7 +50,10 @@ button {
   margin: 0 auto;
 }
 
-.home-main {
+.home-main,
+.articles-page,
+.about-page {
+  min-height: 100vh;
   background-image:
     linear-gradient(rgba(247, 241, 229, 0.72), rgba(247, 241, 229, 0.82)),
     url("https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1800&q=80");
@@ -779,12 +782,12 @@ button {
 .footer {
   background: var(--dark-bg);
   color: #adbac7;
-  padding: 58px 0 28px;
+  padding: 34px 0 22px;
   text-align: center;
 }
 
 .footer-brand {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   color: #fff;
   font-size: 24px;
 }
@@ -808,7 +811,7 @@ button {
 
 .footer-copyright {
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  padding-top: 20px;
+  padding-top: 16px;
   font-size: 13px;
 }
 
