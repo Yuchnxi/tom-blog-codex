@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const Service = require('egg').Service;
 
 class ArticleService extends Service {
@@ -88,6 +89,73 @@ class ArticleService extends Service {
         },
       ],
     });
+  }
+
+  getClientIp() {
+    const { ctx } = this;
+    const forwardedFor = ctx.get('x-forwarded-for');
+    if (forwardedFor) {
+      return forwardedFor.split(',')[0].trim();
+    }
+
+    return ctx.get('x-real-ip') || ctx.ip || 'unknown';
+  }
+
+  getToday() {
+    return new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  }
+
+  hashIp(ip) {
+    const secret = this.app.config.keys || 'tom_blog_view_secret';
+    return crypto.createHash('sha256').update(`${secret}:${ip}`).digest('hex');
+  }
+
+  async recordView(id) {
+    const { ctx } = this;
+    const article = await ctx.model.Article.findOne({
+      where: {
+        id,
+        is_published: 1,
+      },
+    });
+
+    if (!article) {
+      return null;
+    }
+
+    await article.increment('view_count');
+
+    const ipHash = this.hashIp(this.getClientIp());
+    const viewDate = this.getToday();
+    let shouldIncreaseVisitor = false;
+
+    try {
+      await ctx.model.ArticleView.create({
+        article_id: article.id,
+        ip_hash: ipHash,
+        view_date: viewDate,
+        user_agent: (ctx.get('user-agent') || '').slice(0, 500),
+      });
+      shouldIncreaseVisitor = true;
+    } catch (error) {
+      if (error.name !== 'SequelizeUniqueConstraintError') {
+        throw error;
+      }
+    }
+
+    if (shouldIncreaseVisitor) {
+      await article.increment('visitor_count');
+    }
+
+    const latest = await ctx.model.Article.findByPk(article.id, {
+      attributes: [ 'id', 'view_count', 'visitor_count' ],
+    });
+
+    return {
+      id: latest.id,
+      view_count: latest.view_count,
+      visitor_count: latest.visitor_count,
+    };
   }
 
   async create(payload) {

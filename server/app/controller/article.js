@@ -19,6 +19,17 @@ class ArticleController extends Controller {
     this.ctx.success(article);
   }
 
+  async recordView() {
+    const data = await this.ctx.service.article.recordView(this.ctx.params.id);
+
+    if (!data) {
+      this.ctx.fail('文章不存在或未发布', 404);
+      return;
+    }
+
+    this.ctx.success(data);
+  }
+
   async adminList() {
     const data = await this.ctx.service.article.list(this.ctx.query, true);
     this.ctx.success(data);

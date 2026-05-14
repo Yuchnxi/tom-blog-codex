@@ -32,6 +32,12 @@
         <el-table-column label="分类" width="200" align="center">
           <template #default="{ row }">{{ row.category?.name || '-' }}</template>
         </el-table-column>
+        <el-table-column label="阅读量" width="110" align="center">
+          <template #default="{ row }">{{ row.view_count || 0 }}</template>
+        </el-table-column>
+        <el-table-column label="访客数" width="110" align="center">
+          <template #default="{ row }">{{ row.visitor_count || 0 }}</template>
+        </el-table-column>
         <el-table-column label="标签" min-width="200" align="center">
           <template #default="{ row }">
             <el-space wrap>
