@@ -348,6 +348,22 @@ button {
   letter-spacing: 0.8px;
 }
 
+.post-views {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.post-views svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
 .post-title {
   margin: 0 0 14px;
   color: var(--dark-bg);

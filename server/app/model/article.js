@@ -36,7 +36,19 @@ module.exports = app => {
         type: TINYINT(1),
         allowNull: false,
         defaultValue: 0,
-        comment: '是否发布：0未发布，1已发布',
+        comment: '是否发布，0未发布，1已发布',
+      },
+      view_count: {
+        type: INTEGER.UNSIGNED,
+        allowNull: false,
+        defaultValue: 0,
+        comment: '文章阅读量',
+      },
+      visitor_count: {
+        type: INTEGER.UNSIGNED,
+        allowNull: false,
+        defaultValue: 0,
+        comment: '文章访客数',
       },
       deleted_at: {
         type: DATE,
@@ -64,6 +76,10 @@ module.exports = app => {
       foreignKey: 'article_id',
       otherKey: 'tag_id',
       as: 'tags',
+    });
+    Article.hasMany(app.model.ArticleView, {
+      foreignKey: 'article_id',
+      as: 'views',
     });
   };
 

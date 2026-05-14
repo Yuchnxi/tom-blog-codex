@@ -31,6 +31,13 @@
             <div class="post-meta">
               <span class="post-category">{{ article.category?.name || '未分类' }}</span>
               <span>{{ formatDate(article.created_at || article.createdAt) }}</span>
+              <span class="post-views" aria-label="阅读量">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                {{ article.view_count || 0 }}
+              </span>
             </div>
             <h3 class="post-title">{{ article.title }}</h3>
             <p class="post-excerpt">{{ createExcerpt(article) }}</p>

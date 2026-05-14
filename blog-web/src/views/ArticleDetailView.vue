@@ -22,6 +22,28 @@
       <header class="reader-header">
         <div class="reader-heading">
           <h1>{{ article.title }}</h1>
+          <p class="reader-meta reader-meta-line">
+            <span>{{ categoryName }}</span>
+            <span>{{ articleDate }}</span>
+            <span class="reader-meta-count" aria-label="阅读量">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              {{ articleViews }}
+            </span>
+            <span class="reader-meta-count" aria-label="访客数">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+                <path d="M4.5 21a7.5 7.5 0 0 1 15 0" />
+              </svg>
+              {{ articleVisitors }}
+            </span>
+          </p>
+          <p v-if="false" class="reader-meta reader-metrics">
+            <span>阅读 {{ articleViews }}</span>
+            <span>访客 {{ articleVisitors }}</span>
+          </p>
           <p class="reader-meta">{{ categoryName }} · {{ articleDate }}</p>
 
           <div v-if="article.tags?.length" class="reader-tags" aria-label="文章标签">
@@ -61,7 +83,7 @@
 import MarkdownIt from 'markdown-it';
 import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
-import { getArticle } from '../api/blog';
+import { getArticle, recordArticleView } from '../api/blog';
 import BackToTop from '../components/BackToTop.vue';
 import ImagePreviewDialog from '../components/ImagePreviewDialog.vue';
 import { formatDate } from '../utils/format';
@@ -140,6 +162,8 @@ const renderedContent = computed(() => articleRenderResult.value.html);
 const articleHeadings = computed(() => articleRenderResult.value.headings);
 const categoryName = computed(() => article.value?.category?.name || '文章');
 const articleDate = computed(() => formatDate(article.value?.created_at || article.value?.createdAt));
+const articleViews = computed(() => article.value?.view_count || 0);
+const articleVisitors = computed(() => article.value?.visitor_count || 0);
 
 async function copyText(text) {
   if (navigator.clipboard?.writeText) {
@@ -214,11 +238,29 @@ async function loadArticle() {
 
   try {
     article.value = await getArticle(route.params.id);
+    recordCurrentArticleView();
   } catch {
     article.value = null;
     errorMessage.value = '文章不存在或暂时无法访问。';
   } finally {
     loading.value = false;
+  }
+}
+
+async function recordCurrentArticleView() {
+  if (!article.value?.id) {
+    return;
+  }
+
+  try {
+    const data = await recordArticleView(article.value.id);
+    article.value = {
+      ...article.value,
+      view_count: data?.view_count ?? article.value.view_count,
+      visitor_count: data?.visitor_count ?? article.value.visitor_count,
+    };
+  } catch {
+    // 访问统计失败不影响正文阅读。
   }
 }
 
@@ -366,6 +408,37 @@ onMounted(() => {
   font-family: "Noto Serif SC", "Songti SC", SimSun, serif;
   font-size: 14px;
   line-height: 1.7;
+}
+
+.reader-heading > .reader-meta:not(.reader-meta-line) {
+  display: none;
+}
+
+.reader-meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  color: #8a7556;
+  font-family: "Noto Serif SC", "Songti SC", SimSun, serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.reader-meta-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.reader-meta-line svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
 }
 
 .reader-tags {

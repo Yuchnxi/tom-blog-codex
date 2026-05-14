@@ -10,6 +10,7 @@ module.exports = app => {
 
   router.post('/api/admin/login', controller.admin.login);
   router.get('/api/admin/info', adminAuth, controller.admin.info);
+  router.get('/api/admin/dashboard/stats', adminAuth, controller.dashboard.stats);
   router.put('/api/admin/password', adminAuth, controller.admin.changePassword);
   router.get('/api/admin/profile', adminAuth, controller.profile.detail);
   router.put('/api/admin/profile', adminAuth, controller.profile.update);
@@ -26,6 +27,7 @@ module.exports = app => {
 
   router.get('/api/articles', controller.article.publicList);
   router.get('/api/articles/:id', controller.article.publicDetail);
+  router.post('/api/articles/:id/view', controller.article.recordView);
   router.get('/api/admin/articles', adminAuth, controller.article.adminList);
   router.get('/api/admin/articles/:id', adminAuth, controller.article.adminDetail);
   router.post('/api/admin/articles', adminAuth, controller.article.create);

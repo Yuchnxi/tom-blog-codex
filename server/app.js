@@ -15,6 +15,7 @@ class AppBootHook {
     }
 
     await app.model.sync({ force: false });
+    await this.ensureArticleViewColumns();
     await this.syncModelComments();
 
     const { initialUsername, initialPassword } = app.config.admin || {};
@@ -35,6 +36,30 @@ class AppBootHook {
       username: initialUsername,
       password: hashedPassword,
     });
+  }
+
+  async ensureArticleViewColumns() {
+    const { app } = this;
+    const queryInterface = app.model.getQueryInterface();
+    const columns = await queryInterface.describeTable('articles');
+
+    if (!columns.view_count) {
+      await queryInterface.addColumn('articles', 'view_count', {
+        type: app.Sequelize.INTEGER.UNSIGNED,
+        allowNull: false,
+        defaultValue: 0,
+        comment: '文章阅读量',
+      });
+    }
+
+    if (!columns.visitor_count) {
+      await queryInterface.addColumn('articles', 'visitor_count', {
+        type: app.Sequelize.INTEGER.UNSIGNED,
+        allowNull: false,
+        defaultValue: 0,
+        comment: '文章访客数',
+      });
+    }
   }
 
   async syncModelComments() {
