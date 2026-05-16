@@ -29,7 +29,7 @@
               accept="image/*"
             >
               <div v-if="form.cover" class="cover-preview-card">
-                <img :src="form.cover" alt="文章封面" />
+                <img :src="cosThumb(form.cover, { width: 400 })" alt="文章封面" />
                 <span class="cover-preview-mask">{{ uploading ? '上传中...' : '重新上传' }}</span>
               </div>
               <div v-else class="cover-upload-card">
@@ -96,6 +96,7 @@ import 'md-editor-v3/lib/style.css';
 import { createArticle, getArticle, updateArticle, uploadImage } from '../../../api/article';
 import { getCategories } from '../../../api/category';
 import { getTags } from '../../../api/tag';
+import { cosThumb } from '../../../utils/cos';
 import { toArticlePayload } from '../../../utils/format';
 
 const props = defineProps({

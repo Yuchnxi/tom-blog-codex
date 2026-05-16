@@ -23,7 +23,7 @@
 
       <div v-else class="post-grid">
         <RouterLink v-for="article in articles" :key="article.id" class="post-card" :to="`/articles/${article.id}`">
-          <div v-if="article.cover" class="post-image" :style="{ backgroundImage: `url(${article.cover})` }"></div>
+          <div v-if="article.cover" class="post-image" :style="{ backgroundImage: `url(${cosThumb(article.cover, { width: 400 })})` }"></div>
           <div v-else class="post-image post-image-placeholder">
             <span>TOM NOTES</span>
           </div>
@@ -59,6 +59,7 @@ import { onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { getArticles } from '../api/blog';
 import BackToTop from '../components/BackToTop.vue';
+import { cosThumb } from '../utils/cos';
 import { createExcerpt, formatDate } from '../utils/format';
 
 const loading = ref(false);

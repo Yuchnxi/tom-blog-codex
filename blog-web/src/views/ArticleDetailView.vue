@@ -54,7 +54,7 @@
         <figure class="cover-frame">
           <img
             v-if="article.cover"
-            :src="article.cover"
+            :src="cosThumb(article.cover, { width: 400 })"
             :alt="article.title"
             @click="openImagePreview($event.target)"
           />
@@ -86,6 +86,7 @@ import { RouterLink, useRoute } from 'vue-router';
 import { getArticle, recordArticleView } from '../api/blog';
 import BackToTop from '../components/BackToTop.vue';
 import ImagePreviewDialog from '../components/ImagePreviewDialog.vue';
+import { cosThumb } from '../utils/cos';
 import { formatDate } from '../utils/format';
 
 const route = useRoute();
@@ -126,6 +127,13 @@ function renderArticleMarkdown(content) {
   const headings = [];
 
   tokens.forEach((token, index) => {
+    if (token.type === 'image') {
+      const src = token.attrGet('src');
+      token.attrSet('src', cosThumb(src));
+      token.attrSet('data-origin-src', src || '');
+      return;
+    }
+
     if (token.type !== 'heading_open') {
       return;
     }
@@ -211,7 +219,7 @@ async function handleCodeCopy(event) {
 
 function openImagePreview(img) {
   previewImage.value = {
-    src: img.currentSrc || img.src,
+    src: img.dataset?.originSrc || img.currentSrc || img.src,
     alt: img.alt || article.value?.title || '图片预览',
   };
   previewVisible.value = true;
