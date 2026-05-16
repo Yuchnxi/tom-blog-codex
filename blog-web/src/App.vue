@@ -5,7 +5,7 @@
         <RouterLink class="brand-logo" to="/">TOM <span>NOTES</span></RouterLink>
         <nav class="nav-links" aria-label="主导航">
           <RouterLink to="/">首页</RouterLink>
-          <RouterLink to="/articles">记录</RouterLink>
+          <RouterLink to="/articles">记录1111</RouterLink>
           <RouterLink to="/about">关于</RouterLink>
         </nav>
       </div>
