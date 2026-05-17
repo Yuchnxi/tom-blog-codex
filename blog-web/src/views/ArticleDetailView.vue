@@ -75,14 +75,28 @@
       @close="closeImagePreview"
     />
 
+    <button
+      class="reader-floating-back"
+      :class="{ 'is-visible': floatingActionsVisible }"
+      type="button"
+      aria-label="返回上一页或首页"
+      :aria-hidden="!floatingActionsVisible"
+      :tabindex="floatingActionsVisible ? 0 : -1"
+      title="返回"
+      @click="goBackOrHome"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6" />
+      </svg>
+    </button>
     <BackToTop right="max(28px, calc((100vw - 850px) / 2 - 84px))" />
   </main>
 </template>
 
 <script setup>
 import MarkdownIt from 'markdown-it';
-import { computed, onMounted, ref } from 'vue';
-import { RouterLink, useRoute } from 'vue-router';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { getArticle, recordArticleView } from '../api/blog';
 import BackToTop from '../components/BackToTop.vue';
 import ImagePreviewDialog from '../components/ImagePreviewDialog.vue';
@@ -90,6 +104,7 @@ import { cosThumb } from '../utils/cos';
 import { formatDate } from '../utils/format';
 
 const route = useRoute();
+const router = useRouter();
 const loading = ref(false);
 const errorMessage = ref('');
 const article = ref(null);
@@ -98,6 +113,7 @@ const previewImage = ref({
   src: '',
   alt: '',
 });
+const floatingActionsVisible = ref(false);
 
 const md = new MarkdownIt({
   html: false,
@@ -240,6 +256,19 @@ function handleReaderBodyClick(event) {
   }
 }
 
+function goBackOrHome() {
+  if (window.history.state?.back) {
+    router.back();
+    return;
+  }
+
+  router.push('/');
+}
+
+function updateFloatingActionsVisible() {
+  floatingActionsVisible.value = window.scrollY > 420;
+}
+
 async function loadArticle() {
   loading.value = true;
   errorMessage.value = '';
@@ -274,6 +303,12 @@ async function recordCurrentArticleView() {
 
 onMounted(() => {
   loadArticle();
+  updateFloatingActionsVisible();
+  window.addEventListener('scroll', updateFloatingActionsVisible, { passive: true });
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', updateFloatingActionsVisible);
 });
 </script>
 
@@ -304,6 +339,55 @@ onMounted(() => {
 .reader-back:hover {
   color: #5f4815;
   transform: translateX(-3px);
+}
+
+.reader-floating-back {
+  position: fixed;
+  right: max(28px, calc((100vw - 850px) / 2 - 84px));
+  bottom: 92px;
+  z-index: 12;
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid rgba(154, 118, 40, 0.32);
+  border-radius: 50%;
+  background: rgba(253, 251, 247, 0.86);
+  box-shadow: 0 12px 30px rgba(66, 48, 28, 0.16);
+  color: #7a5a18;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease,
+    background 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.reader-floating-back svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+}
+
+.reader-floating-back.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.reader-floating-back:hover {
+  border-color: rgba(154, 118, 40, 0.58);
+  background: #fdfbf7;
+  color: #4f3a0d;
+  transform: translate(-2px, 0);
 }
 
 .reader-layout {
@@ -707,6 +791,13 @@ onMounted(() => {
 
   .reader-back {
     margin-left: 0;
+  }
+
+  .reader-floating-back {
+    right: 18px;
+    bottom: 76px;
+    width: 44px;
+    height: 44px;
   }
 
   .reader-card {
