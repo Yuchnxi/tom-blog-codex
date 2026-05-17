@@ -4,9 +4,20 @@ const Service = require('egg').Service;
 
 class CategoryService extends Service {
   async list() {
-    return this.ctx.model.Category.findAll({
+    const categories = await this.ctx.model.Category.findAll({
       order: [[ 'id', 'DESC' ]],
     });
+
+    return Promise.all(categories.map(async category => {
+      const data = category.toJSON();
+      data.article_count = await this.ctx.model.Article.count({
+        where: {
+          category_id: category.id,
+          is_published: 1,
+        },
+      });
+      return data;
+    }));
   }
 
   async create(name) {

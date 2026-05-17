@@ -94,10 +94,21 @@ class ArticleService extends Service {
       where.category_id = Number(query.categoryId);
     }
 
-    if (query.keyword) {
-      where.title = {
-        [Op.like]: `%${query.keyword}%`,
-      };
+    const keywordText = String(query.keyword || '').trim();
+    if (keywordText) {
+      const keyword = `%${keywordText}%`;
+      if (adminMode) {
+        where.title = {
+          [Op.like]: keyword,
+        };
+      } else {
+        where[Op.or] = [
+          { title: { [Op.like]: keyword } },
+          { content: { [Op.like]: keyword } },
+          { '$category.name$': { [Op.like]: keyword } },
+          { '$tags.name$': { [Op.like]: keyword } },
+        ];
+      }
     }
 
     return where;
@@ -129,6 +140,7 @@ class ArticleService extends Service {
       where,
       include,
       distinct: true,
+      subQuery: false,
       order: [[ 'id', 'DESC' ]],
       limit: pageSize,
       offset: (page - 1) * pageSize,

@@ -1,98 +1,108 @@
 <template>
   <main class="articles-page">
-    <section class="container page-hero">
-      <p class="hero-kicker">Archive</p>
-      <h1>文章归档</h1>
-      <p>按分类和标签翻找所有公开文章，找到某段思考最初落笔的地方。</p>
-    </section>
-
     <section class="container content-section">
-      <div class="filter-panel">
-        <div>
-          <h2>全部文章</h2>
-          <p>{{ filterSummary }}</p>
+      <div class="article-page-layout">
+        <aside class="article-sidebar" aria-label="文章筛选">
+          <div class="article-sidebar-panel">
+            <form class="site-search sidebar-search" role="search" @submit.prevent="handleSearch">
+              <input
+                v-model="searchKeyword"
+                type="search"
+                placeholder="搜索标题、正文、标签..."
+                aria-label="站内搜索"
+              />
+            </form>
+
+            <section class="sidebar-section" aria-label="分类列表">
+              <h2 class="sidebar-title">
+                <span class="sidebar-icon folder-icon" aria-hidden="true"></span>
+                分类列表
+              </h2>
+              <button
+                v-for="category in categories"
+                :key="category.id"
+                :class="['sidebar-category', { active: activeCategoryId === category.id }]"
+                type="button"
+                @click="selectCategory(category.id)"
+              >
+                <span>{{ category.name }}</span>
+                <span>{{ category.article_count || 0 }}</span>
+              </button>
+            </section>
+
+            <section v-if="tags.length" class="sidebar-section" aria-label="标签聚合">
+              <h2 class="sidebar-title">
+                <span class="sidebar-icon tag-icon" aria-hidden="true"></span>
+                标签聚合
+              </h2>
+              <div class="sidebar-tags">
+                <button
+                  v-for="tag in tags"
+                  :key="tag.id"
+                  :class="['sidebar-tag', { active: activeTagId === tag.id }]"
+                  type="button"
+                  @click="selectTag(tag.id)"
+                >
+                  # {{ tag.name }}
+                </button>
+              </div>
+            </section>
+
+            <button v-if="searchKeyword || activeCategoryId || activeTagId" class="text-button sidebar-reset" type="button" @click="resetFilters">
+              清除筛选
+            </button>
+          </div>
+        </aside>
+
+        <div class="article-main-column">
+          <div v-if="loading" class="state-card">文章加载中...</div>
+          <div v-else-if="errorMessage" class="state-card error-state">{{ errorMessage }}</div>
+          <div v-else-if="!articles.length" class="state-card">没有找到匹配的文章。</div>
+
+          <div v-else class="post-grid article-list">
+            <RouterLink v-for="article in articles" :key="article.id" class="post-card" :to="getArticlePath(article)">
+              <div v-if="article.cover" class="post-image" :style="{ backgroundImage: `url(${cosThumb(article.cover, { width: 400 })})` }"></div>
+              <div v-else class="post-image post-image-placeholder">
+                <span>TOM NOTES</span>
+              </div>
+              <div class="post-content">
+                <div class="post-meta">
+                  <span class="post-category">{{ article.category?.name || '未分类' }}</span>
+                  <span>{{ formatDate(article.created_at || article.createdAt) }}</span>
+                  <span class="post-views" aria-label="阅读量">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    {{ article.view_count || 0 }}
+                  </span>
+                </div>
+                <h3 class="post-title">{{ article.title }}</h3>
+                <p class="post-excerpt">{{ createExcerpt(article) }}</p>
+                <div v-if="article.tags?.length" class="card-tags">
+                  <span v-for="tag in article.tags.slice(0, 3)" :key="tag.id">#{{ tag.name }}</span>
+                </div>
+                <span class="read-more">阅读全文 <span aria-hidden="true">→</span></span>
+              </div>
+            </RouterLink>
+          </div>
+
+          <div v-if="pagination.total > pagination.pageSize" class="pagination-row">
+            <button class="pager-button" type="button" :disabled="pagination.page <= 1" @click="changePage(pagination.page - 1)">
+              上一页
+            </button>
+            <span>第 {{ pagination.page }} / {{ totalPages }} 页</span>
+            <button
+              class="pager-button"
+              type="button"
+              :disabled="pagination.page >= totalPages"
+              @click="changePage(pagination.page + 1)"
+            >
+              下一页
+            </button>
+          </div>
         </div>
-        <button v-if="activeCategoryId || activeTagId" class="text-button" type="button" @click="resetFilters">
-          清除筛选
-        </button>
-      </div>
 
-      <div class="filter-row" aria-label="文章分类筛选">
-        <button
-          :class="['filter-chip', { active: !activeCategoryId }]"
-          type="button"
-          @click="selectCategory(null)"
-        >
-          全部分类
-        </button>
-        <button
-          v-for="category in categories"
-          :key="category.id"
-          :class="['filter-chip', { active: activeCategoryId === category.id }]"
-          type="button"
-          @click="selectCategory(category.id)"
-        >
-          {{ category.name }}
-        </button>
-      </div>
-
-      <div v-if="tags.length" class="tag-row" aria-label="文章标签筛选">
-        <button
-          v-for="tag in tags"
-          :key="tag.id"
-          :class="['tag-chip', { active: activeTagId === tag.id }]"
-          type="button"
-          @click="selectTag(tag.id)"
-        >
-          #{{ tag.name }}
-        </button>
-      </div>
-
-      <div v-if="loading" class="state-card">文章加载中...</div>
-      <div v-else-if="errorMessage" class="state-card error-state">{{ errorMessage }}</div>
-      <div v-else-if="!articles.length" class="state-card">这个筛选条件下暂时没有文章。</div>
-
-      <div v-else class="post-grid">
-        <RouterLink v-for="article in articles" :key="article.id" class="post-card" :to="getArticlePath(article)">
-          <div v-if="article.cover" class="post-image" :style="{ backgroundImage: `url(${cosThumb(article.cover, { width: 400 })})` }"></div>
-          <div v-else class="post-image post-image-placeholder">
-            <span>TOM NOTES</span>
-          </div>
-          <div class="post-content">
-            <div class="post-meta">
-              <span class="post-category">{{ article.category?.name || '未分类' }}</span>
-              <span>{{ formatDate(article.created_at || article.createdAt) }}</span>
-              <span class="post-views" aria-label="阅读量">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-                {{ article.view_count || 0 }}
-              </span>
-            </div>
-            <h3 class="post-title">{{ article.title }}</h3>
-            <p class="post-excerpt">{{ createExcerpt(article) }}</p>
-            <div v-if="article.tags?.length" class="card-tags">
-              <span v-for="tag in article.tags.slice(0, 3)" :key="tag.id">#{{ tag.name }}</span>
-            </div>
-            <span class="read-more">阅读全文 <span aria-hidden="true">→</span></span>
-          </div>
-        </RouterLink>
-      </div>
-
-      <div v-if="pagination.total > pagination.pageSize" class="pagination-row">
-        <button class="pager-button" type="button" :disabled="pagination.page <= 1" @click="changePage(pagination.page - 1)">
-          上一页
-        </button>
-        <span>第 {{ pagination.page }} / {{ totalPages }} 页</span>
-        <button
-          class="pager-button"
-          type="button"
-          :disabled="pagination.page >= totalPages"
-          @click="changePage(pagination.page + 1)"
-        >
-          下一页
-        </button>
       </div>
     </section>
 
@@ -101,19 +111,22 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
-import { RouterLink } from 'vue-router';
+import { computed, onMounted, ref, watch } from 'vue';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { getArticles, getCategories, getTags } from '../api/blog';
 import BackToTop from '../components/BackToTop.vue';
 import { cosThumb } from '../utils/cos';
 import { createExcerpt, formatDate } from '../utils/format';
 
 const pageSize = 9;
+const route = useRoute();
+const router = useRouter();
 const loading = ref(false);
 const errorMessage = ref('');
 const articles = ref([]);
 const categories = ref([]);
 const tags = ref([]);
+const searchKeyword = ref('');
 const activeCategoryId = ref(null);
 const activeTagId = ref(null);
 const pagination = ref({
@@ -123,23 +136,49 @@ const pagination = ref({
 });
 
 const totalPages = computed(() => Math.max(Math.ceil(pagination.value.total / pagination.value.pageSize), 1));
-const activeCategory = computed(() => categories.value.find((item) => item.id === activeCategoryId.value));
-const activeTag = computed(() => tags.value.find((item) => item.id === activeTagId.value));
-const filterSummary = computed(() => {
-  const parts = [];
-  if (activeCategory.value) {
-    parts.push(`分类：${activeCategory.value.name}`);
-  }
-  if (activeTag.value) {
-    parts.push(`标签：#${activeTag.value.name}`);
-  }
-
-  const prefix = parts.length ? parts.join(' / ') : '当前展示全部公开文章';
-  return `${prefix}，共 ${pagination.value.total} 篇。`;
-});
 
 function getArticlePath(article) {
   return `/articles/${article.slug || article.id}`;
+}
+
+function getSingleQueryValue(value) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function parsePositiveNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : null;
+}
+
+function applyRouteQuery() {
+  searchKeyword.value = String(getSingleQueryValue(route.query.q) || '').trim();
+  activeCategoryId.value = parsePositiveNumber(getSingleQueryValue(route.query.categoryId));
+  activeTagId.value = parsePositiveNumber(getSingleQueryValue(route.query.tagId));
+  pagination.value.page = parsePositiveNumber(getSingleQueryValue(route.query.page)) || 1;
+}
+
+function buildRouteQuery(page = pagination.value.page) {
+  const query = {};
+  if (searchKeyword.value) {
+    query.q = searchKeyword.value;
+  }
+  if (activeCategoryId.value) {
+    query.categoryId = activeCategoryId.value;
+  }
+  if (activeTagId.value) {
+    query.tagId = activeTagId.value;
+  }
+  if (page > 1) {
+    query.page = page;
+  }
+  return query;
+}
+
+function syncRouteQuery(page = pagination.value.page) {
+  router.replace({
+    path: '/articles',
+    query: buildRouteQuery(page),
+  });
 }
 
 async function loadFilters() {
@@ -156,11 +195,13 @@ async function loadFilters() {
 async function loadArticles(page = 1) {
   loading.value = true;
   errorMessage.value = '';
+  syncRouteQuery(page);
 
   try {
     const data = await getArticles({
       page,
       pageSize,
+      keyword: searchKeyword.value || undefined,
       categoryId: activeCategoryId.value || undefined,
       tagId: activeTagId.value || undefined,
     });
@@ -179,8 +220,18 @@ async function loadArticles(page = 1) {
   }
 }
 
+function handleSearch() {
+  searchKeyword.value = searchKeyword.value.trim();
+  loadArticles(1);
+}
+
+function clearKeyword() {
+  searchKeyword.value = '';
+  loadArticles(1);
+}
+
 function selectCategory(id) {
-  activeCategoryId.value = id;
+  activeCategoryId.value = activeCategoryId.value === id ? null : id;
   loadArticles(1);
 }
 
@@ -190,6 +241,7 @@ function selectTag(id) {
 }
 
 function resetFilters() {
+  searchKeyword.value = '';
   activeCategoryId.value = null;
   activeTagId.value = null;
   loadArticles(1);
@@ -203,7 +255,15 @@ function changePage(page) {
 }
 
 onMounted(async () => {
+  applyRouteQuery();
   await loadFilters();
-  await loadArticles();
+  await loadArticles(pagination.value.page);
 });
+
+watch(
+  () => route.query,
+  () => {
+    applyRouteQuery();
+  }
+);
 </script>

@@ -4,9 +4,19 @@ const Service = require('egg').Service;
 
 class TagService extends Service {
   async list() {
-    return this.ctx.model.Tag.findAll({
+    const tags = await this.ctx.model.Tag.findAll({
       order: [[ 'id', 'DESC' ]],
     });
+
+    return Promise.all(tags.map(async tag => {
+      const data = tag.toJSON();
+      data.article_count = await tag.countArticles({
+        where: {
+          is_published: 1,
+        },
+      });
+      return data;
+    }));
   }
 
   async create(name) {
