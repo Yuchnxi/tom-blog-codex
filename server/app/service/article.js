@@ -4,6 +4,84 @@ const crypto = require('crypto');
 const Service = require('egg').Service;
 
 class ArticleService extends Service {
+  normalizeSlug(value) {
+    return String(value || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 160);
+  }
+
+  async ensureUniqueSlug(rawSlug, excludeId = null, fallback = '') {
+    const { Op } = this.app.Sequelize;
+    let base = this.normalizeSlug(rawSlug) || this.normalizeSlug(fallback);
+    if (/^\d+$/.test(base)) {
+      base = this.normalizeSlug(fallback) || `article-${base}`;
+    }
+    let slug = base || 'article';
+    let index = 2;
+
+    while (true) {
+      const where = { slug };
+      if (excludeId) {
+        where.id = { [Op.ne]: excludeId };
+      }
+
+      const existed = await this.ctx.model.Article.findOne({
+        where,
+        attributes: [ 'id' ],
+        paranoid: false,
+      });
+      if (!existed) {
+        return slug;
+      }
+
+      const suffix = `-${index}`;
+      slug = `${base.slice(0, 160 - suffix.length)}${suffix}`;
+      index += 1;
+    }
+  }
+
+  async isSlugUsed(slug, excludeId = null) {
+    const { Op } = this.app.Sequelize;
+    const where = { slug };
+    if (excludeId) {
+      where.id = { [Op.ne]: excludeId };
+    }
+
+    const existed = await this.ctx.model.Article.findOne({
+      where,
+      attributes: [ 'id' ],
+      paranoid: false,
+    });
+    return Boolean(existed);
+  }
+
+  async resolveArticleSlug(payload, article) {
+    const manualSlug = this.normalizeSlug(payload.slug);
+    if (manualSlug) {
+      if (/^\d+$/.test(manualSlug)) {
+        const error = new Error('文章 slug 不能为纯数字');
+        error.status = 400;
+        throw error;
+      }
+
+      if (await this.isSlugUsed(manualSlug, article.id)) {
+        const error = new Error('文章 slug 已存在');
+        error.status = 400;
+        throw error;
+      }
+
+      return manualSlug;
+    }
+
+    return this.ensureUniqueSlug(payload.title, article.id, `article-${article.id}`);
+  }
+
+
   buildWhere(query, adminMode = false) {
     const { Op } = this.app.Sequelize;
     const where = {};
@@ -66,8 +144,10 @@ class ArticleService extends Service {
     };
   }
 
-  async detail(id, adminMode = false) {
-    const where = { id };
+  async detail(identifier, adminMode = false) {
+    const where = /^\d+$/.test(String(identifier))
+      ? { id: Number(identifier) }
+      : { slug: identifier };
 
     if (!adminMode) {
       where.is_published = 1;
@@ -162,11 +242,14 @@ class ArticleService extends Service {
     const { ctx } = this;
     const article = await ctx.model.Article.create({
       title: payload.title,
+      slug: null,
       cover: payload.cover || '',
       content: payload.content,
       category_id: payload.categoryId,
       is_published: payload.isPublished ? 1 : 0,
     });
+    article.slug = await this.resolveArticleSlug(payload, article);
+    await article.save();
 
     await this.syncTags(article, payload.tagIds);
     return this.detail(article.id, true);
@@ -179,6 +262,7 @@ class ArticleService extends Service {
     }
 
     article.title = payload.title;
+    article.slug = await this.resolveArticleSlug(payload, article);
     article.cover = payload.cover || '';
     article.content = payload.content;
     article.category_id = payload.categoryId;

@@ -17,6 +17,12 @@ module.exports = app => {
         allowNull: false,
         comment: '文章标题',
       },
+      slug: {
+        type: STRING(160),
+        allowNull: true,
+        unique: true,
+        comment: '文章访问标识',
+      },
       cover: {
         type: STRING(500),
         allowNull: true,

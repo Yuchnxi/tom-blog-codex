@@ -53,7 +53,7 @@
       <div v-else-if="!articles.length" class="state-card">这个筛选条件下暂时没有文章。</div>
 
       <div v-else class="post-grid">
-        <RouterLink v-for="article in articles" :key="article.id" class="post-card" :to="`/articles/${article.id}`">
+        <RouterLink v-for="article in articles" :key="article.id" class="post-card" :to="getArticlePath(article)">
           <div v-if="article.cover" class="post-image" :style="{ backgroundImage: `url(${cosThumb(article.cover, { width: 400 })})` }"></div>
           <div v-else class="post-image post-image-placeholder">
             <span>TOM NOTES</span>
@@ -137,6 +137,10 @@ const filterSummary = computed(() => {
   const prefix = parts.length ? parts.join(' / ') : '当前展示全部公开文章';
   return `${prefix}，共 ${pagination.value.total} 篇。`;
 });
+
+function getArticlePath(article) {
+  return `/articles/${article.slug || article.id}`;
+}
 
 async function loadFilters() {
   try {

@@ -95,7 +95,7 @@
 
 <script setup>
 import MarkdownIt from 'markdown-it';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { getArticle, recordArticleView } from '../api/blog';
 import BackToTop from '../components/BackToTop.vue';
@@ -270,11 +270,19 @@ function updateFloatingActionsVisible() {
 }
 
 async function loadArticle() {
+  const identifier = String(route.params.id || '');
+  if (article.value?.slug && article.value.slug === identifier) {
+    return;
+  }
+
   loading.value = true;
   errorMessage.value = '';
 
   try {
-    article.value = await getArticle(route.params.id);
+    article.value = await getArticle(identifier);
+    if (/^\d+$/.test(identifier) && article.value?.slug) {
+      router.replace(`/articles/${article.value.slug}`);
+    }
     recordCurrentArticleView();
   } catch {
     article.value = null;
@@ -306,6 +314,13 @@ onMounted(() => {
   updateFloatingActionsVisible();
   window.addEventListener('scroll', updateFloatingActionsVisible, { passive: true });
 });
+
+watch(
+  () => route.params.id,
+  () => {
+    loadArticle();
+  }
+);
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', updateFloatingActionsVisible);

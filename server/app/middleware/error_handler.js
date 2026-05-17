@@ -19,7 +19,7 @@ module.exports = () => {
 
       ctx.status = err.status || 500;
       ctx.body = {
-        code: 500,
+        code: ctx.status === 500 ? 500 : 1,
         message: ctx.status === 500 ? '服务器内部错误' : err.message,
         data: null,
       };

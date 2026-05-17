@@ -42,7 +42,24 @@
 
           <section class="article-meta-panel" aria-label="文章信息">
             <el-form-item label="标题" prop="title">
-              <el-input v-model="form.title" maxlength="200" show-word-limit placeholder="请输入文章标题" />
+              <el-input
+                v-model="form.title"
+                maxlength="200"
+                show-word-limit
+                placeholder="请输入文章标题"
+                @blur="fillSlugFromTitle"
+                @input="fillSlugFromTitle"
+              />
+            </el-form-item>
+
+            <el-form-item label="Slug" prop="slug">
+              <el-input
+                v-model="form.slug"
+                maxlength="160"
+                show-word-limit
+                placeholder="仅支持小写英文、数字和短横线"
+                @input="handleSlugInput"
+              />
             </el-form-item>
 
             <el-form-item label="分类" prop="categoryId">
@@ -119,6 +136,7 @@ const tags = ref([]);
 
 const form = reactive({
   title: '',
+  slug: '',
   cover: '',
   content: '',
   categoryId: '',
@@ -128,18 +146,52 @@ const form = reactive({
 
 const rules = {
   title: [{ required: true, message: '请输入文章标题', trigger: 'blur' }],
+  slug: [
+    {
+      pattern: /^(?!\d+$)[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      message: '仅支持小写英文、数字和短横线',
+      trigger: 'blur',
+    },
+  ],
   content: [{ required: true, message: '请输入正文', trigger: 'blur' }],
   categoryId: [{ required: true, message: '请选择分类', trigger: 'change' }],
 };
+const slugTouched = ref(false);
+
+function normalizeSlug(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 160);
+}
 
 function resetForm() {
   form.title = '';
+  form.slug = '';
   form.cover = '';
   form.content = '';
   form.categoryId = '';
   form.tagIds = [];
   form.isPublished = false;
+  slugTouched.value = false;
   formRef.value?.clearValidate();
+}
+
+function fillSlugFromTitle() {
+  if (slugTouched.value || props.articleId) {
+    return;
+  }
+
+  form.slug = normalizeSlug(form.title);
+}
+
+function handleSlugInput(value) {
+  slugTouched.value = true;
+  form.slug = normalizeSlug(value);
 }
 
 async function init() {
@@ -153,6 +205,7 @@ async function init() {
     if (props.articleId) {
       const article = await getArticle(props.articleId);
       form.title = article.title || '';
+      form.slug = article.slug || '';
       form.cover = article.cover || '';
       form.content = article.content || '';
       form.categoryId = article.category_id || article.categoryId || article.category?.id || '';

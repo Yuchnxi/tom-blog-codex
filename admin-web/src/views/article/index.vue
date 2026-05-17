@@ -28,7 +28,12 @@
 
     <div class="panel">
       <el-table v-loading="loading" :data="articles">
-        <el-table-column prop="title" label="文章标题" min-width="260" show-overflow-tooltip />
+        <el-table-column label="文章标题" min-width="260" show-overflow-tooltip>
+          <template #default="{ row }">
+            <div class="article-title-cell">{{ row.title }}</div>
+            <div class="article-slug-cell">/{{ row.slug || row.id }}</div>
+          </template>
+        </el-table-column>
         <el-table-column label="分类" width="200" align="center">
           <template #default="{ row }">{{ row.category?.name || '-' }}</template>
         </el-table-column>
@@ -180,3 +185,16 @@ onMounted(async () => {
   await loadArticles();
 });
 </script>
+
+<style scoped>
+.article-title-cell {
+  color: #303133;
+  line-height: 1.5;
+}
+
+.article-slug-cell {
+  color: #909399;
+  font-size: 12px;
+  line-height: 1.4;
+}
+</style>

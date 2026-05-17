@@ -16,6 +16,7 @@ class AppBootHook {
 
     await app.model.sync({ force: false });
     await this.ensureArticleViewColumns();
+    await this.ensureArticleSlugColumn();
     await this.syncModelComments();
 
     const { initialUsername, initialPassword } = app.config.admin || {};
@@ -62,6 +63,78 @@ class AppBootHook {
     }
   }
 
+  normalizeSlug(value) {
+    return String(value || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 160);
+  }
+
+  async buildUniqueArticleSlug(rawSlug, id, usedSlugs) {
+    const fallback = `article-${id}`;
+    let base = this.normalizeSlug(rawSlug) || fallback;
+    if (/^\d+$/.test(base)) {
+      base = fallback;
+    }
+    let slug = base;
+    let index = 2;
+
+    while (usedSlugs.has(slug)) {
+      const suffix = `-${index}`;
+      slug = `${base.slice(0, 160 - suffix.length)}${suffix}`;
+      index += 1;
+    }
+
+    usedSlugs.add(slug);
+    return slug;
+  }
+
+  async ensureArticleSlugColumn() {
+    const { app } = this;
+    const queryInterface = app.model.getQueryInterface();
+    const columns = await queryInterface.describeTable('articles');
+
+    if (!columns.slug) {
+      await queryInterface.addColumn('articles', 'slug', {
+        type: app.Sequelize.STRING(160),
+        allowNull: true,
+        comment: '文章访问标识',
+      });
+    }
+
+    const articles = await app.model.Article.findAll({
+      attributes: [ 'id', 'title', 'slug' ],
+      order: [[ 'id', 'ASC' ]],
+      paranoid: false,
+    });
+    const usedSlugs = new Set();
+
+    for (const article of articles) {
+      const normalizedSlug = this.normalizeSlug(article.slug);
+      if (normalizedSlug) {
+        article.slug = await this.buildUniqueArticleSlug(normalizedSlug, article.id, usedSlugs);
+        await article.save({ silent: true });
+        continue;
+      }
+
+      article.slug = await this.buildUniqueArticleSlug(article.title, article.id, usedSlugs);
+      await article.save({ silent: true });
+    }
+
+    const indexes = await queryInterface.showIndex('articles');
+    const hasSlugUniqueIndex = indexes.some(index => index.unique && index.fields?.some(field => field.attribute === 'slug'));
+    if (!hasSlugUniqueIndex) {
+      await queryInterface.addIndex('articles', [ 'slug' ], {
+        unique: true,
+        name: 'uniq_articles_slug',
+      });
+    }
+  }
+
   async syncModelComments() {
     const { app } = this;
 
@@ -88,6 +161,7 @@ class AppBootHook {
       "ALTER TABLE `articles` COMMENT = '文章表'",
       "ALTER TABLE `articles` MODIFY COLUMN `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '文章ID'",
       "ALTER TABLE `articles` MODIFY COLUMN `title` VARCHAR(200) NOT NULL COMMENT '文章标题'",
+      "ALTER TABLE `articles` MODIFY COLUMN `slug` VARCHAR(160) NULL COMMENT '文章访问标识'",
       "ALTER TABLE `articles` MODIFY COLUMN `cover` VARCHAR(500) NULL COMMENT '封面图URL'",
       "ALTER TABLE `articles` MODIFY COLUMN `content` LONGTEXT NOT NULL COMMENT 'Markdown 原文内容'",
       "ALTER TABLE `articles` MODIFY COLUMN `category_id` INT UNSIGNED NOT NULL COMMENT '关联分类ID'",

@@ -119,6 +119,7 @@ class ArticleController extends Controller {
 
     return {
       title: payload.title,
+      slug: payload.slug,
       cover: payload.cover,
       content: payload.content,
       categoryId: Number(payload.categoryId),

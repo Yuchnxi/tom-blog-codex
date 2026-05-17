@@ -22,7 +22,7 @@
       <div v-else-if="!articles.length" class="state-card">暂时还没有文章。</div>
 
       <div v-else class="post-grid">
-        <RouterLink v-for="article in articles" :key="article.id" class="post-card" :to="`/articles/${article.id}`">
+        <RouterLink v-for="article in articles" :key="article.id" class="post-card" :to="getArticlePath(article)">
           <div v-if="article.cover" class="post-image" :style="{ backgroundImage: `url(${cosThumb(article.cover, { width: 400 })})` }"></div>
           <div v-else class="post-image post-image-placeholder">
             <span>TOM NOTES</span>
@@ -65,6 +65,10 @@ import { createExcerpt, formatDate } from '../utils/format';
 const loading = ref(false);
 const errorMessage = ref('');
 const articles = ref([]);
+
+function getArticlePath(article) {
+  return `/articles/${article.slug || article.id}`;
+}
 
 async function loadLatestArticles() {
   loading.value = true;

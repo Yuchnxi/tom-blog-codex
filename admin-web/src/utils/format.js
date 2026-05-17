@@ -17,6 +17,7 @@ export function formatDate(value) {
 export function toArticlePayload(form) {
   return {
     title: form.title.trim(),
+    slug: form.slug.trim(),
     cover: form.cover.trim(),
     content: form.content,
     categoryId: form.categoryId,
