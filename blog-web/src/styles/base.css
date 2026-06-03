@@ -1028,6 +1028,18 @@ button {
   font-size: 13px;
 }
 
+.footer-beian {
+  display: inline-flex;
+  margin-top: 8px;
+  color: #adbac7;
+  font-size: 13px;
+  transition: color 0.18s ease;
+}
+
+.footer-beian:hover {
+  color: var(--accent);
+}
+
 @media (max-width: 920px) {
   .article-page-layout {
     grid-template-columns: 1fr;
