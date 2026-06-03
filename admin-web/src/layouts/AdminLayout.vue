@@ -31,6 +31,12 @@
       </header>
 
       <RouterView />
+
+      <footer class="admin-footer">
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
+          粤ICP备2026062606号-1
+        </a>
+      </footer>
     </main>
   </div>
 </template>

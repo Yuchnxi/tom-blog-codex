@@ -240,6 +240,8 @@ button {
 }
 
 .main-content {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-width: 0;
   padding: 38px 40px 48px;
@@ -259,6 +261,22 @@ button {
   font-size: 28px;
   font-weight: 650;
   letter-spacing: 0;
+}
+
+.admin-footer {
+  margin-top: auto;
+  padding-top: 28px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.admin-footer a {
+  transition: color 0.18s ease;
+}
+
+.admin-footer a:hover {
+  color: var(--accent);
 }
 
 .panel,

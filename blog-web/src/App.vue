@@ -17,6 +17,14 @@
       <div class="container">
         <div class="footer-brand">TOM <span>NOTES</span></div>
         <div class="footer-copyright">© 2026 TOM NOTES. All rights reserved.</div>
+        <a
+          class="footer-beian"
+          href="https://beian.miit.gov.cn/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          粤ICP备2026062606号-1
+        </a>
       </div>
     </footer>
   </div>
